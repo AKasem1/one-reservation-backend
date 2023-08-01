@@ -14,7 +14,7 @@ const app = express();
 //middlewares
 app.use(express.json())
 app.use(cors({
-    origin: ["http://localhost:3000", "https://one-reservation-frontend.vercel.app", "https://one-reservation-system.onrender.com"],
+    origin: ["http://localhost:3000", "https://one-reservation-system.onrender.com"],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
