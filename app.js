@@ -1,5 +1,5 @@
-require("dotenv").config()
 const cors = require("cors")
+require("dotenv").config()
 const adminRoute = require('./routes/admin')
 const reservationRoute = require('./routes/reservation')
 const gradeRoute = require('./routes/grade')
