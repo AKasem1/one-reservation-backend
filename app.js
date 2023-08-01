@@ -6,6 +6,7 @@ const gradeRoute = require('./routes/grade')
 const express = require('express')
 const { default: mongoose } = require("mongoose");
 
+//
 mongoose.set('strictQuery', false);
 
 const app = express();
