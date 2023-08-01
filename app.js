@@ -1,5 +1,5 @@
-const cors = require("cors")
 require("dotenv").config()
+const cors = require("cors")
 const adminRoute = require('./routes/admin')
 const reservationRoute = require('./routes/reservation')
 const gradeRoute = require('./routes/grade')
@@ -14,7 +14,7 @@ const app = express();
 //middlewares
 app.use(express.json())
 app.use(cors({
-    origin: ["http://localhost:3000", "https://one-reservation-system.onrender.com"],
+    origin: ["http://localhost:3000", "https://one-reservation-frontend.vercel.app", "https://one-reservation-system.onrender.com"],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
