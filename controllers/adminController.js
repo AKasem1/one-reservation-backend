@@ -26,6 +26,7 @@ const loginAdmin = async (req, res) => {
       res.status(200).json({username, token})
     }
     catch(error){
+      console.log("Catch Error: Can not log ya abdo")
       res.status(400).json({error: error.message})
     }
   }
