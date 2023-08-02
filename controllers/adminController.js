@@ -7,6 +7,7 @@ const createToken = (_id) => {
   }
 
 const loginAdmin = async (req, res) => {
+    console.log("here received request..s")
     const {username, password} = req.body
     console.log({username, password})
     try{
