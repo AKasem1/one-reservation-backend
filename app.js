@@ -1,5 +1,6 @@
 require("dotenv").config()
 const cors = require("cors")
+const path = require('path');
 const adminRoute = require('./routes/admin')
 const reservationRoute = require('./routes/reservation')
 const gradeRoute = require('./routes/grade')
@@ -19,6 +20,7 @@ app.use(cors({
     preflightContinue: false,
     optionsSuccessStatus: 204,
 }));
+app.use(express.static(path.join(__dirname, '../client/build')));
 app.use('/admin', adminRoute)
 app.use('/reservation', reservationRoute)
 app.use('/grade', gradeRoute)
