@@ -16,7 +16,6 @@ const checkStudentAndHandleReservation = async (
   }
   const checkStudent = Student.findOne({
     $or: [
-      { name: { $regex: new RegExp(name, 'i') } },
       { phone: { $regex: new RegExp(phone, 'i') } },
       { anotherphone: { $regex: new RegExp(anotherphone, 'i') } }
     ]
