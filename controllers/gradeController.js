@@ -107,4 +107,28 @@ const getGrade = async (req,res)=>{
     })
 }
 
-module.exports = {insertGrade, getAllGrades, updateGrade, getGrade}
+const resetGrade = async (req, res) => {
+  const { gradeName } = req.params;
+  console.log("gradeName: ", gradeName);
+
+  try {
+    const grade = await Grade.findOne({ gradeName });
+
+    if (!grade) {
+      return res.status(404).json({ error: "Grade not found" });
+    }
+
+    grade.modules.forEach((module) => {
+      module.reservedDocuments = [];
+    });
+
+    await grade.save();
+
+    return res.status(200).json({ message: "Grade reservations reset successfully" });
+  } catch (error) {
+    console.error("Error resetting grade:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = {insertGrade, getAllGrades, updateGrade, getGrade, resetGrade}
