@@ -1,6 +1,26 @@
 const Student = require('../models/StudentModel')
 const Grade = require('../models/GradeModel')
-
+const checkStudent = async (phone, anotherphone) => {
+  console.log("phone, anotherphone ", phone, anotherphone)
+  let queryConditions = [
+    { phone: phone }
+  ];
+  
+  if (anotherphone.length > 0) {
+    queryConditions.push({ anotherphone: anotherphone });
+  }
+  const student = await Student.findOne({
+    $or: queryConditions
+  });
+  // const student = await Student.findOne({
+  //   $or: [
+  //     { phone: { $regex: new RegExp(phone, 'i') } },
+  //     { anotherphone: { $regex: new RegExp(anotherphone, 'i') } }
+  //   ]
+  // });
+  console.log("student is: ", student) 
+  return student;
+}
 const checkStudentAndHandleReservation = async (
   name,
   address,
@@ -14,12 +34,7 @@ const checkStudentAndHandleReservation = async (
     console.log("Grade is null or undefined.");
     return;
   }
-  const checkStudent = Student.findOne({
-    $or: [
-      { phone: { $regex: new RegExp(phone, 'i') } },
-      { anotherphone: { $regex: new RegExp(anotherphone, 'i') } }
-    ]
-  });
+  
   let code = ""
 
   const gradeCheck = await Grade.findOneAndUpdate(
@@ -30,55 +45,60 @@ const checkStudentAndHandleReservation = async (
   console.log("Entered Modules are: ", modules)
   console.log("Grade is: ", gradeCheck)
   console.log("Reservation Count is: ", gradeCheck.reservationCount)
-  
+ 
   if(grade == "Baby Class"){
     code = "C-" + gradeCheck.reservationCount
     console.log("Grade is Baby Class")
   }
-  else if (grade == "KG1"){
-    code = "K1-" + gradeCheck.reservationCount
-    console.log("Grade is KG1")
+  else{
+    grade.startsWith("Prim") ? code = grade[0] + grade[grade.length - 1] + '-0' + gradeCheck.reservationCount
+    : code = grade[0] + (grade[grade.length - 1]/1) + '-0' + gradeCheck.reservationCount;
   }
-  else if (grade == "KG2"){
-    code = "K2-" + gradeCheck.reservationCount
-    console.log("Grade is KG2")
-  }
-  else if (grade == "Prim 1"){
-    code = "P1-0" + gradeCheck.reservationCount
-    console.log("Grade is Prim 1")
-  }
-  else if (grade == "Prim 2"){
-    code = "P2-0" + gradeCheck.reservationCount
-    console.log("Grade is Prim 2")
-  }
-  else if (grade == "Prim 3"){
-    code = "P3-0" + gradeCheck.reservationCount
-    console.log("Grade is Prim 3")
-  }
-  else if (grade == "Prim 4"){
-    code = "P4-0" + gradeCheck.reservationCount
-    console.log("Grade is Prim 4")
-  }
-  else if (grade == "Prim 5"){
-    code = "P5-0" + gradeCheck.reservationCount
-    console.log("Grade is Prim 5")
-  }
-  else if (grade == "Prim 6"){
-    code = "P6-0" + gradeCheck.reservationCount
-    console.log("Grade is Prim 6")
-  }
-  else if (grade == "Prep 1"){
-    code = "P7-0" + gradeCheck.reservationCount
-    console.log("Grade is Prep 1")
-  }
-  else if (grade == "Prep 2"){
-    code = "P8-0" + gradeCheck.reservationCount
-    console.log("Grade is Prep 2")
-  }
-  else if (grade == "Prep 3"){
-    code = "P9-0" + gradeCheck.reservationCount
-    console.log("Grade is Prep 3")
-  }
+
+  // else if (grade == "KG1"){
+  //   code = "K1-" + gradeCheck.reservationCount
+  //   console.log("Grade is KG1")
+  // }
+  // else if (grade == "KG2"){
+  //   code = "K2-" + gradeCheck.reservationCount
+  //   console.log("Grade is KG2")
+  // }
+  // else if (grade == "Prim 1"){
+  //   code = "P1-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prim 1")
+  // }
+  // else if (grade == "Prim 2"){
+  //   code = "P2-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prim 2")
+  // }
+  // else if (grade == "Prim 3"){
+  //   code = "P3-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prim 3")
+  // }
+  // else if (grade == "Prim 4"){
+  //   code = "P4-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prim 4")
+  // }
+  // else if (grade == "Prim 5"){
+  //   code = "P5-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prim 5")
+  // }
+  // else if (grade == "Prim 6"){
+  //   code = "P6-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prim 6")
+  // }
+  // else if (grade == "Prep 1"){
+  //   code = "P7-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prep 1")
+  // }
+  // else if (grade == "Prep 2"){
+  //   code = "P8-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prep 2")
+  // }
+  // else if (grade == "Prep 3"){
+  //   code = "P9-0" + gradeCheck.reservationCount
+  //   console.log("Grade is Prep 3")
+  // }
 
   const reservation = {
     code,
@@ -88,8 +108,8 @@ const checkStudentAndHandleReservation = async (
     createdAt: new Date()
   };
 
-  const student = await checkStudent.exec();
-
+  const student = await checkStudent(phone, anotherphone);
+  console.log(student)
   if (student) {
     console.log("student found");
     student.reservations.push(reservation);
@@ -97,7 +117,7 @@ const checkStudentAndHandleReservation = async (
     for (let i = 0; i < modules.length; i++) {
       for (let j = 0; j < gradeCheck.modules.length; j++) {
         if (modules[i] === gradeCheck.modules[j].moduleName) {
-          const copiesCount = parseInt(copiesNumber[i]);
+          const copiesCount = Number(copiesNumber[i]);
           if (Number.isInteger(copiesCount)) {
             gradeCheck.modules[j].reservedDocuments.push(student._id);
             gradeCheck.modules[j].reservationCount =
@@ -134,7 +154,6 @@ const checkStudentAndHandleReservation = async (
               gradeCheck.modules[j].reservationCount + copiesCount;
           } else {
             console.log("Invalid copiesNumber value at index", i, ":", copiesNumber[i]);
-            continue;
           }
         }
       }
@@ -196,8 +215,8 @@ const newReservation = async (req, res) => {
           console.log("Modules", modules)
           console.log("Copies Number", copiesNumber)
 
-          const reservationPromises = grade.map((g, index) => {
-            return checkStudentAndHandleReservation(
+          const reservationPromises = grade.map(async(g, index) => {
+            return await checkStudentAndHandleReservation(
               name,
               address,
               phone,
@@ -207,6 +226,10 @@ const newReservation = async (req, res) => {
               copiesNumber[index]
             );
           });
+          console.log('reservationPromises: ', reservationPromises)
+          console.log('reservationPromises: ', reservationPromises)
+          console.log('reservationPromises: ', reservationPromises)
+          console.log('reservationPromises: ', reservationPromises)
           await Promise.all(reservationPromises);
           res.status(200).json({ message: "تم تسجيل الحجز بنجاح" });
             }
@@ -219,6 +242,7 @@ const newReservation = async (req, res) => {
 const allreservations = async (req, res) => {
   await Student.find().sort({ 'reservations.createdAt': 1 })
   .then(student=>{
+    console.log("Here your reservations")
       res.json({student})
   })
   .catch(err=>{
