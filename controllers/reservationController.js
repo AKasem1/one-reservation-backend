@@ -12,12 +12,7 @@ const checkStudent = async (phone, anotherphone) => {
   const student = await Student.findOne({
     $or: queryConditions
   });
-  // const student = await Student.findOne({
-  //   $or: [
-  //     { phone: { $regex: new RegExp(phone, 'i') } },
-  //     { anotherphone: { $regex: new RegExp(anotherphone, 'i') } }
-  //   ]
-  // });
+
   console.log("student is: ", student) 
   return student;
 }
@@ -38,7 +33,7 @@ const checkStudentAndHandleReservation = async (
   let code = ""
 
   const gradeCheck = await Grade.findOneAndUpdate(
-    { gradeName: grade },
+    { gradeName: grade.gradeName },
     { $inc: { reservationCount: 1 } },
     { new: true }
   );
@@ -46,63 +41,22 @@ const checkStudentAndHandleReservation = async (
   console.log("Grade is: ", gradeCheck)
   console.log("Reservation Count is: ", gradeCheck.reservationCount)
  
-  if(grade == "Baby Class"){
+  if(grade.gradeName == "Baby Class"){
     code = "C-" + gradeCheck.reservationCount
     console.log("Grade is Baby Class")
   }
-  else{
-    grade.startsWith("Prim") ? code = grade[0] + grade[grade.length - 1] + '-0' + gradeCheck.reservationCount
-    : code = grade[0] + (grade[grade.length - 1]/1) + '-0' + gradeCheck.reservationCount;
+  else if(grade.gradeName[0] =="K"){
+    code = grade.gradeName[0] + grade.gradeName[grade.gradeName.length - 1] + '-0' + gradeCheck.reservationCount
   }
-
-  // else if (grade == "KG1"){
-  //   code = "K1-" + gradeCheck.reservationCount
-  //   console.log("Grade is KG1")
-  // }
-  // else if (grade == "KG2"){
-  //   code = "K2-" + gradeCheck.reservationCount
-  //   console.log("Grade is KG2")
-  // }
-  // else if (grade == "Prim 1"){
-  //   code = "P1-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prim 1")
-  // }
-  // else if (grade == "Prim 2"){
-  //   code = "P2-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prim 2")
-  // }
-  // else if (grade == "Prim 3"){
-  //   code = "P3-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prim 3")
-  // }
-  // else if (grade == "Prim 4"){
-  //   code = "P4-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prim 4")
-  // }
-  // else if (grade == "Prim 5"){
-  //   code = "P5-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prim 5")
-  // }
-  // else if (grade == "Prim 6"){
-  //   code = "P6-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prim 6")
-  // }
-  // else if (grade == "Prep 1"){
-  //   code = "P7-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prep 1")
-  // }
-  // else if (grade == "Prep 2"){
-  //   code = "P8-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prep 2")
-  // }
-  // else if (grade == "Prep 3"){
-  //   code = "P9-0" + gradeCheck.reservationCount
-  //   console.log("Grade is Prep 3")
-  // }
+  else{
+    grade.gradeName.startsWith("Prim") ? code = grade.gradeName[0] + grade.gradeName[grade.gradeName.length - 1] + '-0' + gradeCheck.reservationCount
+    : code = grade.gradeName[0] + (grade.gradeName[grade.gradeName.length - 1]/1) + '-0' + gradeCheck.reservationCount;
+  }
+  const gradeN = grade.gradeName
 
   const reservation = {
     code,
-    grade,
+    grade: gradeN,
     modules,
     copiesNumber,
     createdAt: new Date()
@@ -182,13 +136,13 @@ const newReservation = async (req, res) => {
               .json({ error: "Phone numbers should have exactly 11 digits." });
           }
 
-          const nameRegex = /^\S+\s+\S+\s+\S+$/;
-            if (!nameRegex.test(name)) {
-                console.log("Name should consist of three names separated by two spaces.");
-                return res
-                .status(422)
-                .json({ error: "Name should consist of three names separated by two spaces." });
-        }
+          const nameRegex = /^(?:\S*\s){2}/;
+          if (!nameRegex.test(name)) {
+              console.log("Name should consist of three names separated by two spaces.");
+              return res
+                  .status(422)
+                  .json({ error: "Name should consist of three names separated by two spaces." });
+          }
         
           const digitsRegex = /^\d+$/;
           console.log("Is phone valid:", digitsRegex.test(phone));
@@ -211,7 +165,7 @@ const newReservation = async (req, res) => {
               .status(422)
               .json({ error: "Phone numbers should be different." });
           }
-          console.log("Grade", grade)
+          console.log("Grade: ", grade)
           console.log("Modules", modules)
           console.log("Copies Number", copiesNumber)
 
@@ -226,9 +180,6 @@ const newReservation = async (req, res) => {
               copiesNumber[index]
             );
           });
-          console.log('reservationPromises: ', reservationPromises)
-          console.log('reservationPromises: ', reservationPromises)
-          console.log('reservationPromises: ', reservationPromises)
           console.log('reservationPromises: ', reservationPromises)
           await Promise.all(reservationPromises);
           res.status(200).json({ message: "تم تسجيل الحجز بنجاح" });
