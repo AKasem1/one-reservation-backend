@@ -48,9 +48,11 @@ const checkStudentAndHandleReservation = async (
   else if(grade.gradeName[0] =="K"){
     code = grade.gradeName[0] + grade.gradeName[grade.gradeName.length - 1] + '-0' + gradeCheck.reservationCount
   }
+  else if(grade.gradeName.startsWith("Prim")){
+    code = grade.gradeName[0] + grade.gradeName[grade.gradeName.length - 1] + '-0' + gradeCheck.reservationCount
+  }
   else{
-    grade.gradeName.startsWith("Prim") ? code = grade.gradeName[0] + grade.gradeName[grade.gradeName.length - 1] + '-0' + gradeCheck.reservationCount
-    : code = grade.gradeName[0] + (grade.gradeName[grade.gradeName.length - 1]/1) + '-0' + gradeCheck.reservationCount;
+    code = grade.gradeName[0] + (grade.gradeName[grade.gradeName.length - 1]/1) + 6 + '-0' + gradeCheck.reservationCount;
   }
   const gradeN = grade.gradeName
 
