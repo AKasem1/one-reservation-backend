@@ -52,7 +52,7 @@ const checkStudentAndHandleReservation = async (
     code = grade.gradeName[0] + grade.gradeName[grade.gradeName.length - 1] + '-0' + gradeCheck.reservationCount
   }
   else{
-    code = grade.gradeName[0] + (grade.gradeName[grade.gradeName.length - 1]/1) + 6 + '-0' + gradeCheck.reservationCount;
+    code = grade.gradeName[0] + (grade.gradeName[grade.gradeName.length - 1]/1 + 6)  + '-0' + gradeCheck.reservationCount;
   }
   const gradeN = grade.gradeName
 
