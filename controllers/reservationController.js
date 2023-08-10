@@ -279,6 +279,10 @@ const deleteReservation = async(req, res) => {
       const moduleIndex = grade.modules.findIndex((module) => module.moduleName === moduleName);
       if (moduleIndex !== -1) {
         grade.modules[moduleIndex].reservationCount -= reservation.copiesNumber[index];
+        const studentIndex = grade.modules[moduleIndex].reservedDocuments.findIndex(studentId => studentId.equals(student._id));
+        if (studentIndex !== -1) {
+          grade.modules[moduleIndex].reservedDocuments.splice(studentIndex, 1);
+        }
       }
     });
     await grade.save();
