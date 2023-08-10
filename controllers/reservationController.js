@@ -31,6 +31,8 @@ const checkStudentAndHandleReservation = async (
   }
   
   let code = ""
+  
+  const student = await checkStudent(phone, anotherphone);
 
   const gradeCheck = await Grade.findOneAndUpdate(
     { gradeName: grade.gradeName },
@@ -64,7 +66,6 @@ const checkStudentAndHandleReservation = async (
     createdAt: new Date()
   };
 
-  const student = await checkStudent(phone, anotherphone);
   console.log(student)
   if (student) {
     console.log("student found");
@@ -275,6 +276,8 @@ const deleteReservation = async(req, res) => {
     if (!grade) {
       return res.status(404).json({ error: 'Grade not found' });
     }
+    grade.reservationCount -= 1;
+    console.log("Reduced by one")
     reservation.modules.forEach((moduleName, index) => {
       const moduleIndex = grade.modules.findIndex((module) => module.moduleName === moduleName);
       if (moduleIndex !== -1) {
