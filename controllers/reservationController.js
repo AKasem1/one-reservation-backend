@@ -276,8 +276,6 @@ const deleteReservation = async(req, res) => {
     if (!grade) {
       return res.status(404).json({ error: 'Grade not found' });
     }
-    grade.reservationCount -= 1;
-    console.log("Reduced by one")
     reservation.modules.forEach((moduleName, index) => {
       const moduleIndex = grade.modules.findIndex((module) => module.moduleName === moduleName);
       if (moduleIndex !== -1) {
