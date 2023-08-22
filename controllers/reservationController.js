@@ -194,7 +194,7 @@ const newReservation = async (req, res) => {
         };
 
 const allreservations = async (req, res) => {
-  await Student.find().sort({ 'reservations.createdAt': 1 })
+  await Student.find().sort({ 'reservations.createdAt': -1 })
   .then(student=>{
     console.log("Here your reservations")
       res.json({student})

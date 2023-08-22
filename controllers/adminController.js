@@ -45,29 +45,45 @@ const alladmins = async (req, res) => {
   }
   const getExcelPhones = async (req, res) =>{
     try {
-      const students = await Student.find({}, 'name phone anotherphone');
+      const students = await Student.find({}, 'name phone anotherphone reservations');
       //console.log(students)
 
       const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Phone Numbers');
+      let today = new Date().toLocaleDateString().replace(/\//g,'-')
+    const worksheet = workbook.addWorksheet(today);
 
     worksheet.columns = [
+      { header: 'Code', key: 'code', width: 15 },
       { header: 'Name', key: 'name', width: 20 },
       { header: 'Phone', key: 'phone', width: 15 },
       { header: 'Another Phone', key: 'anotherphone', width: 15 },
+      { header: 'Address', key: 'address', width: 15 },
+      { header: 'Grade', key: 'grade', width: 15 },
+      { header: 'Modules', key: 'modules', width: 50 },
+      { header: 'Copies Number', key: 'copiesNumber', width: 30 },
+      { header: 'CreatedAt', key: 'createdAt', width: 20 },
     ];
 
     students.forEach((student) => {
-      worksheet.addRow({
-        name: student.name,
-        phone: student.phone,
-        anotherphone: student.anotherphone,
-      });
+      student.reservations.forEach((reservation) =>{
+        worksheet.addRow({
+          code: reservation.code,
+          name: student.name,
+          phone: student.phone,
+          anotherphone: student.anotherphone,
+          address: student.address,
+          grade: reservation.grade,
+          modules: reservation.modules,
+          copiesNumber: reservation.copiesNumber,
+          createdAt: reservation.createdAt,
+        });
+      })
     });
     console.log('Excel file saved');
-    return workbook.xlsx.writeFile('phone_numbers.xlsx');
+    res.status(200).json("File Saved Successfully..")
+    return workbook.xlsx.writeFile(`${today}.xlsx`);
     } catch (error) {
-      console.log("Catch Error: Can not log ya abdo")
+      console.log("Catch Error: Can not get your data ya abdo")
       res.status(400).json({error: error.message}) 
     }
   }
