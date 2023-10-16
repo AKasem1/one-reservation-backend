@@ -1,6 +1,5 @@
 const Grade = require("../models/GradeModel")
 const requireAuth = require("../middleware/requireAuth")
-grade.balance = grade.balance + Number(price);
 const checkGradeExist = async (gradeName, moduleName, price, balance) =>{
     const gradeExist = await Grade.findOne({
         gradeName
