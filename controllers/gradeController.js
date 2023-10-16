@@ -46,7 +46,7 @@ const insertGrade = async (req, res) => {
     const {gradeName, moduleName, price, balance} = req.body
     try {
         console.log(gradeName, moduleName, price, balance)
-        if(!gradeName || !moduleName || !price || !balance){
+        if(!gradeName || !moduleName || !price){
             return res.status(422).json({error: "Please Add All fields"})
         }
         await checkGradeExist(gradeName, moduleName, price, balance)
@@ -81,6 +81,7 @@ const updateGrade = async (req, res) =>{
         if (grade.modules[i] && grade.modules[i].moduleName === moduleName) {
           grade.modules[i].stock = stock;
           grade.modules[i].price = price;
+          grade.balance = grade.balance + price;
         }
       }
     } else {
