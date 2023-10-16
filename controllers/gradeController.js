@@ -83,7 +83,7 @@ const updateGrade = async (req, res) =>{
         if (grade.modules[i] && grade.modules[i].moduleName === moduleName) {
           grade.modules[i].stock = stock;
           grade.modules[i].price = price;
-          updatedBalance += Number(grade.modules[i].price);
+          updatedBalance += Number(price);
         }
       }
     } else {
