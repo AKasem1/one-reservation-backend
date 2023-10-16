@@ -76,17 +76,19 @@ const updateGrade = async (req, res) =>{
       return res.status(404).json({ error: "Grade not found" });
     }
 
+    let updatedBalance = Number(price);
     if (grade.modules) {
       for (let i = 0; i < grade.modules.length; i++) {
         if (grade.modules[i] && grade.modules[i].moduleName === moduleName) {
           grade.modules[i].stock = stock;
           grade.modules[i].price = price;
-          grade.balance = grade.balance + Number(price);
+          updatedBalance += Number(grade.modules[i].price);
         }
       }
     } else {
       return res.status(404).json({ error: "Modules not found in grade" });
     }
+    grade.balance = updatedBalance;
     await grade.save()
     res.status(200).json({ message: "Grade updated successfully", grade });
   } catch (error) {
