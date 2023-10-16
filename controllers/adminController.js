@@ -74,7 +74,7 @@ const alladmins = async (req, res) => {
   };
   const getExcelPhones = async (req, res) =>{
     try {
-      const students = await Student.find({}, 'name phone anotherphone reservations');
+      const students = await Student.find({}, 'name phone address anotherphone reservations');
       //console.log(students)
 
       const workbook = new ExcelJS.Workbook();
