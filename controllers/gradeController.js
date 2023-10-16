@@ -15,18 +15,20 @@ const checkGradeExist = async (gradeName, moduleName, price, balance) =>{
         gradeExist.modules.push(modules)
         await gradeExist.save()
         const aggregationResult = await Grade.aggregate([
-            { $match: { _id: gradeExist._id } },
-            { $unwind: "$modules" },
-            {
-              $group: {
-                _id: "$_id",
-                total: { $sum: "$modules.price" },
-              },
+          { $match: { _id: gradeExist._id } },
+          { $unwind: "$modules" },
+          {
+            $group: {
+              _id: "$_id",
+              total: { $sum: "$modules.price" },
             },
-          ]);
-      
-          const sumPrices = aggregationResult[0].total;
-          gradeExist.balance = sumPrices;
+          },
+        ]);
+
+        const sumPrices = aggregationResult[0].total;
+        gradeExist.balance = sumPrices;
+        await gradeExist.save(); // save the updated gradeExist object
+        console.log("Grade is updated successfully");
           await gradeExist.save()
         console.log("Grade is updated successfully")
     }
