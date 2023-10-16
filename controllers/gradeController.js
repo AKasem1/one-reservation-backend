@@ -77,7 +77,7 @@ const updateGrade = async (req, res) =>{
       return res.status(404).json({ error: "Grade not found" });
     }
 
-    let updatedBalance = Number(price);
+    let updatedBalance = grade.balance;
     if (grade.modules) {
       for (let i = 0; i < grade.modules.length; i++) {
         if (grade.modules[i] && grade.modules[i].moduleName === moduleName) {
