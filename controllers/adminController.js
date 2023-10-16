@@ -43,6 +43,35 @@ const alladmins = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   }
+  const getUniquePhones = async (req, res) => {
+    try {
+      const {gradeName} = req.params;
+      const students = await Student.find({ reservations: { $elemMatch: { grade: gradeName } } }, 'phone anotherphone');
+      const phones = students.map((student) => student.phone);
+      const anotherPhones = students.map((student) => student.anotherphone);
+      //const uniquePhones = [...new Set([...phones, ...anotherPhones])];
+      const uniquePhones = [...new Set([...phones])];
+      const workbook = new ExcelJS.Workbook();
+      let fileName = `${gradeName} Unique Phones` 
+      const worksheet = workbook.addWorksheet(fileName);
+      worksheet.columns = [
+        { header: 'Phone', key: 'phone', width: 15 },
+        { header: 'Grade', key: 'grade', width: 15 },
+      ];
+      uniquePhones.forEach((phone) => {
+        worksheet.addRow({
+          phone: phone,
+          grade: gradeName
+        })
+      });
+      console.log("Unique Phones Retrieved Successfully..")
+      res.status(200).json("Unique Phones Retrieved Successfully..");
+      return workbook.xlsx.writeFile(`${fileName}.xlsx`)
+    } catch (error) {
+      console.log("Catch Error: Can not get your unique data ya abdo");
+      res.status(400).json({ error: error.message });
+    }
+  };
   const getExcelPhones = async (req, res) =>{
     try {
       const students = await Student.find({}, 'name phone anotherphone reservations');
@@ -51,6 +80,22 @@ const alladmins = async (req, res) => {
       const workbook = new ExcelJS.Workbook();
       let today = new Date().toLocaleDateString().replace(/\//g,'-')
     const worksheet = workbook.addWorksheet(today);
+    const headerRowStyle = {
+      fill: {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '7393B3' },
+      },
+      font: {
+        color: { argb: 'FFFFFF'},
+        bold: true,
+      },
+    };
+    const cellAlignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+      wrapText: true
+    }
 
     worksheet.columns = [
       { header: 'Code', key: 'code', width: 15 },
@@ -63,6 +108,16 @@ const alladmins = async (req, res) => {
       { header: 'Copies Number', key: 'copiesNumber', width: 30 },
       { header: 'CreatedAt', key: 'createdAt', width: 20 },
     ];
+
+    worksheet.getRow(1).eachCell({includeEmpty: false}, (cell) => {
+      cell.style = headerRowStyle
+      cell.alignment = cellAlignment
+    })
+    worksheet.eachRow((row) => {
+      row.eachCell({includeEmpty: true}, (cell => {
+        cell.alignment = cellAlignment
+    }));
+    })
 
     students.forEach((student) => {
       student.reservations.forEach((reservation) =>{
@@ -88,4 +143,4 @@ const alladmins = async (req, res) => {
     }
   }
 
-module.exports = { loginAdmin, alladmins, getExcelPhones}
+module.exports = { loginAdmin, alladmins, getExcelPhones, getUniquePhones}
