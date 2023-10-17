@@ -204,13 +204,13 @@ const allreservations = async (req, res) => {
   })
 }
 const selectedGrade = async (req, res) => {
-  const { grade } = req.params;
-  console.log("selected grade is: ", grade);
+  const { selectedGrade } = req.params;
+  console.log("selected grade is: ", selectedGrade);
   try {
     const reservations = await Student.aggregate([
       { $unwind: "$reservations" },
-      { $match: { "reservations.grade": grade } },
-      { $sort: { "reservations.createdAt": -1 } },
+      { $match: { "reservations.grade": selectedGrade } },
+      { $sort: { "reservations.createdAt": 1 } },
       {
         $group: {
           _id: "$_id",
@@ -219,12 +219,13 @@ const selectedGrade = async (req, res) => {
           phone: { $first: "$phone" },
           anotherphone: { $first: "$anotherphone" },
           reservations: { $push: "$reservations" },
+          createdAt: { $first: "$reservations.createdAt" } // add createdAt to the group stage
         },
-      },
+      }
     ]);
 
     console.log("Filtered reservations:", reservations);
-    res.json({ reservations });
+    res.json({message: "here your filter reservations: ", reservations });
   } catch (error) {
     console.error('Error in retrieving the filtered reservations:', error);
     res.status(500).json({ error: 'Server error' });

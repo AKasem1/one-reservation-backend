@@ -12,7 +12,7 @@ const {selectedGrade} = require('../controllers/reservationController')
 
 router.post('/newReservation', newReservation)
 router.get('/allreservations', allreservations)
-router.get('/selectedGrade/:grade', selectedGrade)
+router.get('/selectedGrade/:selectedGrade', selectedGrade)
 router.patch('/updateStatus/:id', updateStatus)
 router.patch('/updateStatusFalse/:id', updateStatusFalse)
 router.delete('/deleteReservation/:id', deleteReservation)
