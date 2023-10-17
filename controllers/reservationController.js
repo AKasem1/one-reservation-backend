@@ -194,7 +194,7 @@ const newReservation = async (req, res) => {
         };
 
 const allreservations = async (req, res) => {
-  await Student.find().sort({ 'reservations.createdAt': -1 }).limit(20)
+  await Student.find().sort({ 'reservations.createdAt': -1 })
   .then(student=>{
     console.log("Here your reservations")
       res.json({student})
@@ -203,6 +203,33 @@ const allreservations = async (req, res) => {
       console.log(err)
   })
 }
+const selectedGrade = async (req, res) => {
+  const { grade } = req.params;
+  console.log("selected grade is: ", grade);
+  try {
+    const reservations = await Student.aggregate([
+      { $unwind: "$reservations" },
+      { $match: { "reservations.grade": grade } },
+      { $sort: { "reservations.createdAt": -1 } },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          address: { $first: "$address" },
+          phone: { $first: "$phone" },
+          anotherphone: { $first: "$anotherphone" },
+          reservations: { $push: "$reservations" },
+        },
+      },
+    ]);
+
+    console.log("Filtered reservations:", reservations);
+    res.json({ reservations });
+  } catch (error) {
+    console.error('Error in retrieving the filtered reservations:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 const updateStatus = async (req, res) => {
   const { id } = req.params;
@@ -303,4 +330,4 @@ const deleteReservation = async(req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 }
-module.exports = {newReservation, allreservations, updateStatus, updateStatusFalse, deleteReservation}
+module.exports = {newReservation, allreservations, updateStatus, updateStatusFalse, deleteReservation, selectedGrade}
