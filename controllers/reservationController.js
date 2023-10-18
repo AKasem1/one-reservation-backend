@@ -221,9 +221,9 @@ const selectedGrade = async (req, res) => {
           reservations: { $push: "$reservations" },
           createdAt: { $first: "$reservations.createdAt" } // add createdAt to the group stage
         },
-      }
+      },
+      { $sort: { createdAt: 1 } } // sort by createdAt
     ]);
-
     console.log("Filtered reservations:", reservations);
     res.json({message: "here your filter reservations: ", reservations });
   } catch (error) {
