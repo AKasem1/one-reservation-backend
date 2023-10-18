@@ -81,7 +81,7 @@ const updateGrade = async (req, res) =>{
     if (grade.modules) {
       for (let i = 0; i < grade.modules.length; i++) {
         if (grade.modules[i] && grade.modules[i].moduleName === moduleName) {
-          grade.modules[i].stock = stock;
+          grade.modules[i].stock += stock;
           grade.modules[i].price = price;
           updatedBalance += Number(price);
         }
