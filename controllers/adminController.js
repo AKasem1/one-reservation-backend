@@ -46,13 +46,26 @@ const alladmins = async (req, res) => {
   const getUniquePhones = async (req, res) => {
     try {
       const {gradeName} = req.params;
-      const students = await Student.find({ reservations: { $elemMatch: { grade: gradeName } } }, 'phone anotherphone');
+      let students;
+      if(gradeName){
+        students = await Student.find({ reservations: { 
+                                            $elemMatch: { grade: gradeName } } }, 
+                                            'phone anotherphone');  
+      }
+      else{students = await Student.find()}
+      
       const phones = students.map((student) => student.phone);
       const anotherPhones = students.map((student) => student.anotherphone);
       //const uniquePhones = [...new Set([...phones, ...anotherPhones])];
       const uniquePhones = [...new Set([...phones])];
       const workbook = new ExcelJS.Workbook();
-      let fileName = `${gradeName} Unique Phones` 
+      let fileName;
+      if(gradeName){
+        fileName = `${gradeName} Unique Phones`
+      }
+      else{
+        fileName = `Future Unique Phones`
+      }
       const worksheet = workbook.addWorksheet(fileName);
       worksheet.columns = [
         { header: 'Phone', key: 'phone', width: 15 },

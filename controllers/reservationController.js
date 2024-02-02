@@ -1,5 +1,9 @@
 const Student = require('../models/StudentModel')
 const Grade = require('../models/GradeModel')
+const path = require('path');
+const scriptPath = path.join(__dirname, 'whatsapp.py');
+const {spawn} = require('child_process')
+
 const checkStudent = async (phone, anotherphone) => {
   console.log("phone, anotherphone ", phone, anotherphone)
   let queryConditions = [
@@ -120,6 +124,7 @@ const checkStudentAndHandleReservation = async (
     console.log(name, address, phone, anotherphone);
     console.log("Data inserted in Student Model Successfully..");
   }
+  sendWhatsAppMessage(name, phone, grade.gradeName, code)
 };
 
 
@@ -185,6 +190,7 @@ const newReservation = async (req, res) => {
           });
           console.log('reservationPromises: ', reservationPromises)
           await Promise.all(reservationPromises);
+          
           res.status(200).json({ message: "تم تسجيل الحجز بنجاح" });
             }
           } catch (error) {
@@ -193,16 +199,42 @@ const newReservation = async (req, res) => {
           }
         };
 
-const allreservations = async (req, res) => {
-  await Student.find().sort({ 'reservations.createdAt': -1 })
-  .then(student=>{
-    console.log("Here your reservations")
-      res.json({student})
-  })
-  .catch(err=>{
-      console.log(err)
-  })
-}
+        const allreservations = async (req, res) => {
+          const { reservationsPerPage = 25, currentPage = 1 } = req.query;
+          console.log("reservationsPerPage is: ", reservationsPerPage);
+          console.log("current page is: ", currentPage);
+          const skip = (currentPage - 1) * reservationsPerPage;
+          const result = await Student.aggregate([
+            {
+            $project: {
+              _id: 0,
+              reservationsPerPage: { $size: '$reservations' }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalReservations: { $sum: '$reservationsPerPage' }
+            }
+          },
+          {
+            $sort: { createdAt: -1 }
+          }
+        ]);
+        
+          const totalReservations = result.length > 0 ? result[0].totalReservations : 0;
+          console.log("Total Reservations: ", totalReservations);
+          console.log("length: ", result);
+          
+          await Student.find().skip(skip).limit(reservationsPerPage)
+          .then(student=>{
+            console.log("Here your reservations")
+              res.json({student, totalReservations})
+          })
+          .catch(err=>{
+              console.log(err)
+          })
+        }
 const selectedGrade = async (req, res) => {
   const { selectedGrade } = req.params;
   console.log("selected grade is: ", selectedGrade);
@@ -210,7 +242,7 @@ const selectedGrade = async (req, res) => {
     const reservations = await Student.aggregate([
       { $unwind: "$reservations" },
       { $match: { "reservations.grade": selectedGrade } },
-      { $sort: { "reservations.createdAt": 1 } },
+      { $sort: { "reservations.createdAt": -1 } },
       {
         $group: {
           _id: "$_id",
@@ -222,7 +254,7 @@ const selectedGrade = async (req, res) => {
           createdAt: { $first: "$reservations.createdAt" } // add createdAt to the group stage
         },
       },
-      { $sort: { createdAt: 1 } } // sort by createdAt
+      { $sort: { createdAt: -1 } } // sort by createdAt
     ]);
     console.log("Filtered reservations:", reservations);
     res.json({message: "here your filter reservations: ", reservations });
@@ -233,54 +265,32 @@ const selectedGrade = async (req, res) => {
 };
 
 const updateStatus = async (req, res) => {
-  const { id } = req.params;
-  console.log("reservation id is: ", id);
+  const {id, status} = req.body
+    console.log({id, status})
 
   try {
     const student = await Student.findOne({ 'reservations._id': id });
+    console.log("student is: ", student)
 
     if (!student) {
       return res.status(404).json({ error: 'Reservation not found' });
     }
 
-    const reservation = student.reservations.find((res) => res._id.toString() === id);
+    let reservation = student.reservations.find((res) => res._id.toString() === id);
 
     if (!reservation) {
       return res.status(404).json({ error: 'Reservation not found' });
     }
-
-    reservation.status = 'استلم';
+    if(status === 'استلم'){
+      reservation.status = 'استلم';
+    }
+    else if(status === 'لم يستلم'){
+      reservation.status = 'لم يستلم';
+    }
 
     await student.save();
     console.log("Reservation status updated successfully")
-    res.json({ message: 'Reservation status updated successfully' });
-  } catch (error) {
-    console.error('Error updating reservation status:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-};
-const updateStatusFalse = async (req, res) => {
-  const { id } = req.params;
-  console.log("reservation id is: ", id);
-
-  try {
-    const student = await Student.findOne({ 'reservations._id': id });
-
-    if (!student) {
-      return res.status(404).json({ error: 'Reservation not found' });
-    }
-
-    const reservation = student.reservations.find((res) => res._id.toString() === id);
-
-    if (!reservation) {
-      return res.status(404).json({ error: 'Reservation not found' });
-    }
-
-    reservation.status = 'لم يستلم';
-
-    await student.save();
-    console.log("Reservation status updated successfully")
-    res.json({ message: 'Reservation status updated successfully' });
+    res.json({ message: 'Reservation status updated successfully', id, status});
   } catch (error) {
     console.error('Error updating reservation status:', error);
     res.status(500).json({ error: 'Server error' });
@@ -331,4 +341,56 @@ const deleteReservation = async(req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 }
-module.exports = {newReservation, allreservations, updateStatus, updateStatusFalse, deleteReservation, selectedGrade}
+const searchReservations = async (req, res) => {
+  const { query } = req.query;
+  console.log("query is: ", query);
+
+  try {
+    const searchResults = await Student.find({
+      $or: [
+        { name: { $regex: query, $options: 'i' } }, // Case-insensitive name search
+        { phone: { $regex: query, $options: 'i' } }, // Case-insensitive phone search
+        { anotherphone: { $regex: query, $options: 'i' } }, // Case-insensitive anotherphone search
+        { 'reservations.code': { $regex: query, $options: 'i' } }, // Case-insensitive code search
+      ],
+    });
+
+    res.json({ message: 'Search results:', results: searchResults });
+  } catch (error) {
+    console.error('Error in search query:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const sendWhatsAppMessage = async (name, phone, grade, code) => {
+  try {
+    const body = `تم حجز بوكليت فيوتشر للفصل الدراسي الثاني باسم  ${name}
+    المرحلة: ${grade}
+    كود الحجز: ${code}`
+    const receiver = phone
+    const currentDate = new Date();
+    const currentHour = currentDate.getHours();
+    const currentMinute = currentDate.getMinutes();
+    console.log(`Current Time: ${currentHour}:${currentMinute}`);
+    const childPython = spawn('python', [scriptPath, receiver, body, currentHour, currentMinute+1])
+    
+    childPython.stdout.on('data', (data)=>{
+      console.log(`stdout: ${data}`)
+    })
+
+    childPython.stderr.on('data', (data)=>{
+      console.log(`stderr: ${data}`)
+    })
+
+    childPython.on('close', (code)=>{
+      console.log(`child process exited with code: ${code}`)
+    })
+
+    console.log("message should be sent")
+    
+    
+  } catch (error) {
+    console.error('Error sending WhatsApp message:', error);
+  }
+};
+module.exports = {newReservation, sendWhatsAppMessage, allreservations, updateStatus, deleteReservation, selectedGrade, searchReservations}
