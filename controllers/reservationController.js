@@ -5,7 +5,7 @@ const scriptPath = path.join(__dirname, 'whatsapp.py');
 const {spawn} = require('child_process')
 
 const checkStudent = async (phone, anotherphone) => {
-  console.log("phone, anotherphone ", phone, anotherphone)
+  //console.log("phone, anotherphone ", phone, anotherphone)
   let queryConditions = [
     { phone: phone }
   ];
@@ -17,7 +17,7 @@ const checkStudent = async (phone, anotherphone) => {
     $or: queryConditions
   });
 
-  console.log("student is: ", student) 
+  //console.log("student is: ", student) 
   return student;
 }
 const checkStudentAndHandleReservation = async (
@@ -43,13 +43,13 @@ const checkStudentAndHandleReservation = async (
     { $inc: { reservationCount: 1 } },
     { new: true }
   );
-  console.log("Entered Modules are: ", modules)
-  console.log("Grade is: ", gradeCheck)
-  console.log("Reservation Count is: ", gradeCheck.reservationCount)
+  //console.log("Entered Modules are: ", modules)
+  //console.log("Grade is: ", gradeCheck)
+  //console.log("Reservation Count is: ", gradeCheck.reservationCount)
  
   if(grade.gradeName == "Baby Class"){
     code = "C-" + gradeCheck.reservationCount
-    console.log("Grade is Baby Class")
+    //console.log("Grade is Baby Class")
   }
   else if(grade.gradeName[0] =="K"){
     code = grade.gradeName[0] + grade.gradeName[grade.gradeName.length - 1] + '-0' + gradeCheck.reservationCount
@@ -70,7 +70,7 @@ const checkStudentAndHandleReservation = async (
     createdAt: new Date()
   };
 
-  console.log(student)
+  //console.log(student)
   if (student) {
     console.log("student found");
     student.reservations.push(reservation);
@@ -92,8 +92,10 @@ const checkStudentAndHandleReservation = async (
     }
     
     gradeCheck.save()
-    console.log(gradeCheck.modules);
+    //console.log(gradeCheck.modules);
     console.log("student updated successfully");
+    sendWhatsAppMessage(name, phone, grade.gradeName, code)
+    return student;
   } else {
     console.log('No student found.');
     const newStudent = await Student.create({
@@ -120,18 +122,20 @@ const checkStudentAndHandleReservation = async (
       }
     }
     gradeCheck.save()
-    console.log(gradeCheck.modules);
-    console.log(name, address, phone, anotherphone);
+    //console.log(gradeCheck.modules);
+    //console.log(name, address, phone, anotherphone);
     console.log("Data inserted in Student Model Successfully..");
+    sendWhatsAppMessage(name, phone, grade.gradeName, code)
+    return newStudent;
   }
-  sendWhatsAppMessage(name, phone, grade.gradeName, code)
+  // sendWhatsAppMessage(name, phone, grade.gradeName, code)
 };
 
 
 const newReservation = async (req, res) => {
     const {name, address, phone, anotherphone, grade, modules, copiesNumber} = req.body
-    console.log(name, address, phone, anotherphone, grade, modules, copiesNumber)
-    console.log("Phone length:", phone.length);
+    //console.log(name, address, phone, anotherphone, grade, modules, copiesNumber)
+    //console.log("Phone length:", phone.length);
     try {
         if (!name || !phone || !grade || !modules || !copiesNumber) {
           console.log("Please Add All Fields..");
@@ -173,9 +177,9 @@ const newReservation = async (req, res) => {
               .status(422)
               .json({ error: "Phone numbers should be different." });
           }
-          console.log("Grade: ", grade)
-          console.log("Modules", modules)
-          console.log("Copies Number", copiesNumber)
+          //console.log("Grade: ", grade)
+          //console.log("Modules", modules)
+          //console.log("Copies Number", copiesNumber)
 
           const reservationPromises = grade.map(async(g, index) => {
             return await checkStudentAndHandleReservation(
@@ -188,8 +192,8 @@ const newReservation = async (req, res) => {
               copiesNumber[index]
             );
           });
-          console.log('reservationPromises: ', reservationPromises)
           await Promise.all(reservationPromises);
+          console.log('reservationPromises: ', reservationPromises)
           
           res.status(200).json({ message: "تم تسجيل الحجز بنجاح" });
             }
