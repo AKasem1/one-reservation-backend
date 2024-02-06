@@ -6,7 +6,8 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "install-all": "concurrently \"npm install\" \"pip install -r requirements.txt\""
   },
   "dependencies": {
     "@open-wa/wa-automate": "^4.67.0",
