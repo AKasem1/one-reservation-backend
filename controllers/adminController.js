@@ -3,6 +3,10 @@ const jwt = require('jsonwebtoken')
 const Student = require('../models/StudentModel')
 const mongoose = require('mongoose');
 const ExcelJS = require('exceljs');
+const fs = require('fs');
+
+const file1 = './A.xlsx';
+const file2 = './B.xlsx';
 
 const createToken = (_id) => {
     return jwt.sign({_id: _id}, process.env.SECRET, {expiresIn: '3d'})
@@ -85,6 +89,55 @@ const alladmins = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   };
+
+  const mergedExcelFiles = async (req, res) => {
+    try {
+    console.log({file1, file2})
+
+    if (!fs.existsSync(file1) || !fs.existsSync(file2)) {
+      throw new Error("A7a File not found");
+    }
+
+    const workbook1 = new ExcelJS.Workbook();
+    await workbook1.xlsx.readFile(file1);
+
+    const workbook2 = new ExcelJS.Workbook();
+    await workbook2.xlsx.readFile(file2);
+
+    // Create a Set to store unique phone numbers
+    const uniquePhoneNumbers = new Set();
+
+    workbook1.eachSheet((worksheet, sheetId) => {
+      worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+          const phoneNumber = row.getCell(1).value; // Assuming phone numbers are in the first column
+          if (phoneNumber) {
+              uniquePhoneNumbers.add(phoneNumber);
+          }
+      });
+  });
+  workbook2.eachSheet((worksheet, sheetId) => {
+      worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+          const phoneNumber = row.getCell(1).value; // Assuming phone numbers are in the first column
+          if (phoneNumber) {
+              uniquePhoneNumbers.add(phoneNumber);
+          }
+      });
+  });
+  const mergedWorkbook = new ExcelJS.Workbook();
+    const mergedWorksheet = mergedWorkbook.addWorksheet('MergedSheet');
+
+    uniquePhoneNumbers.forEach((phoneNumber) => {
+    mergedWorksheet.addRow([phoneNumber]);
+    });
+    console.log("Merged Unique Phones Retrieved Successfully..")
+      res.status(200).json("Merged Unique Phones Retrieved Successfully..");
+      return mergedWorkbook.xlsx.writeFile(`mergedFiles.xlsx`)}
+      catch (error) {
+        console.log("Catch Error: Can not get your merged unique data ya abdo");
+        res.status(400).json({ error: error.message });
+      }
+  }
+
   const getExcelPhones = async (req, res) =>{
     try {
       const students = await Student.find({}, 'name phone address anotherphone reservations');
@@ -156,4 +209,4 @@ const alladmins = async (req, res) => {
     }
   }
 
-module.exports = { loginAdmin, alladmins, getExcelPhones, getUniquePhones}
+module.exports = { loginAdmin, alladmins, getExcelPhones, getUniquePhones, mergedExcelFiles}
