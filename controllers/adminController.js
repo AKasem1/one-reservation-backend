@@ -5,13 +5,25 @@ const mongoose = require('mongoose');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 
-const file1 = './A.xlsx';
-const file2 = './B.xlsx';
-
 const createToken = (_id) => {
     return jwt.sign({_id: _id}, process.env.SECRET, {expiresIn: '3d'})
   }
-
+const addAdmin = async (req, res) => {
+  const {username, password} = req.body
+  try{
+    if(!username || !password){
+      throw Error('All fields are required.')
+    }
+    const admin = new Admin({username, password})
+    await admin.save()
+    console.log("Admin Added Successfully..")
+    res.status(201).json(admin)
+  }
+  catch(error){
+    console.log("Catch Error: Can not add your admin ya abdo")
+    res.status(400).json({error: error.message})
+  }
+}
 const loginAdmin = async (req, res) => {
     console.log("here received request..s")
     const {username, password} = req.body
@@ -92,8 +104,9 @@ const alladmins = async (req, res) => {
 
   const mergedExcelFiles = async (req, res) => {
     try {
+    const { file1, file2 } = req.body;
     console.log({file1, file2})
-
+    console.log('Current working directory:', process.cwd());
     if (!fs.existsSync(file1) || !fs.existsSync(file2)) {
       throw new Error("A7a File not found");
     }
@@ -123,7 +136,7 @@ const alladmins = async (req, res) => {
           }
       });
   });
-  const mergedWorkbook = new ExcelJS.Workbook();
+    const mergedWorkbook = new ExcelJS.Workbook();
     const mergedWorksheet = mergedWorkbook.addWorksheet('MergedSheet');
 
     uniquePhoneNumbers.forEach((phoneNumber) => {
@@ -209,4 +222,4 @@ const alladmins = async (req, res) => {
     }
   }
 
-module.exports = { loginAdmin, alladmins, getExcelPhones, getUniquePhones, mergedExcelFiles}
+module.exports = { loginAdmin, alladmins, addAdmin, getExcelPhones, getUniquePhones, mergedExcelFiles}
